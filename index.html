@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUV Sales Dashboard 2024-2025 - Futuristic</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.22.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.6.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.21.0"></script>
+    <style>
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background-size: 400% 400%;
+            animation: gradientMove 12s ease infinite;
+            color: #e2e8f0;
+            padding: 0;
+            position: relative;
+        }
+        @keyframes gradientMove {
+            0% {background-position: 0% 50%;}
+            50% {background-position: 100% 50%;}
+            100% {background-position: 0% 50%;}
+        }
+        .futuristic-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            padding: 40px 20px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 0 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+            backdrop-filter: blur(6px);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .logo h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+            text-shadow: 0 0 12px #38bdf8;
+        }
+        .logo-icon {
+            background: linear-gradient(135deg, #38bdf8, #a78bfa);
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            box-shadow: 0 0 24px #38bdf899;
+        }
+        .filters {
+            display: flex;
+            gap: 20px;
+        }
+        select {
+            background: rgba(30, 41, 59, 0.8);
+            color: #e2e8f0;
+            border: 1px solid #38bdf8;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 16px;
+            box-shadow: 0 0 8px #38bdf855;
+            transition: border 0.2s;
+        }
+        select:focus {
+            border: 1.5px solid #a78bfa;
+            outline: none;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.85);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 0 32px #38bdf822, 0 2px 8px #0002;
+            border: 1.5px solid #38bdf8;
+            position: relative;
+            overflow: hidden;
+        }
+        .card:before {
+            content: '';
+            position: absolute;
+            top: -40px; left: -40px;
+            width: 120px; height: 120px;
+            background: radial-gradient(circle, #38bdf8cc 0%, transparent 70%);
+            z-index: 0;
+            filter: blur(12px);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #a78bfa;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px #a78bfa99;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        .map-container {
+            height: 500px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 0 24px #38bdf822;
+            background: rgba(59, 130, 246, 0.08);
+        }
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #1e293b 60%, #38bdf8 100%);
+            padding: 24px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: 0 0 16px #38bdf822;
+            border: 1px solid #a78bfa;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 12px 0;
+            background: linear-gradient(90deg, #38bdf8, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 8px #38bdf8;
+        }
+        .stat-label {
+            color: #a78bfa;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        .sales-breakdown {
+            margin-top: 24px;
+        }
+        .province-list {
+            list-style: none;
+            margin-top: 18px;
+        }
+        .province-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid #334155;
+        }
+        .province-name {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .color-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #38bdf8;
+        }
+        .chart-container {
+            height: 250px;
+            margin-top: 24px;
+            border-radius: 14px;
+            background: rgba(59, 130, 246, 0.08);
+            box-shadow: 0 0 16px #38bdf822;
+        }
+        .trend-badge {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .trend-up {
+            color: #38bdf8;
+            text-shadow: 0 0 6px #38bdf8;
+        }
+        .trend-down {
+            color: #ef4444;
+            text-shadow: 0 0 6px #ef4444;
+        }
+        .sidebar {
+            position: relative;
+            z-index: 1;
+        }
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+            .filters {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <svg class="futuristic-overlay" width="100vw" height="100vh">
+        <defs>
+            <radialGradient id="glow1" cx="50%" cy="50%" r="60%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="glow2" cx="80%" cy="20%" r="40%">
+                <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+            </radialGradient>
+        </defs>
+        <circle cx="60vw" cy="20vh" r="300" fill="url(#glow1)"/>
+        <circle cx="80vw" cy="80vh" r="180" fill="url(#glow2)"/>
+    </svg>
+    <div class="dashboard">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-car"></i>
+                </div>
+                <h1>SUV Sales Dashboard</h1>
+            </div>
+            <div class="filters">
+                <select id="year-filter">
+                    <option value="all">2024-2025</option>
+                    <option value="2024">2024 Only</option>
+                    <option value="2025">2025 Only</option>
+                </select>
+                <select id="model-filter">
+                    <option value="all">All Models</option>
+                    <option value="compact">Compact SUV</option>
+                    <option value="midsize">Mid-size SUV</option>
+                    <option value="fullsize">Full-size SUV</option>
+                </select>
+                <select id="sort-by">
+                    <option value="sales">Sort by Sales</option>
+                    <option value="growth">Sort by Growth</option>
+                </select>
+            </div>
+        </header>
+        <div class="dashboard-grid">
+            <div class="main-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">SUV Sales by Province (2024-2025)</h2>
+                        <div class="legend">
+                            <span>Lower Sales</span>
+                            <span style="display:inline-block; width:30px; height:10px; background:linear-gradient(to right, #3b82f6, #ef4444); margin:0 10px; border-radius:6px;"></span>
+                            <span>Higher Sales</span>
+                        </div>
+                    </div>
+                    <div class="map-container" id="map"></div>
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-label">Total SUV Sales</div>
+                            <div class="stat-value">24,583</div>
+                            <div class="trend-badge trend-up">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>12.4% vs previous period</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Top Province</div>
+                            <div class="stat-value">Gauteng</div>
+                            <div class="trend-badge">
+                                <span>8,427 units</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Fastest Growing</div>
+                            <div class="stat-value">Limpopo</div>
+                            <div class="trend-badge trend-up">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>24.7% growth</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Sales Trends</h2>
+                    </div>
+                    <div class="chart-container" id="trend-chart"></div>
+                </div>
+            </div>
+            <div class="sidebar">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Sales by Province</h2>
+                    </div>
+                    <div class="sales-breakdown">
+                        <ul class="province-list">
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <div class="color-indicator" style="background-color: #ef4444;"></div>
+                                    <span>Gauteng</span>
+                                </div>
+                                <div>8,427 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 14.2%</span></div>
+                            </li>
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <div class="color-indicator" style="background-color: #f97316;"></div>
+                                    <span>Western Cape</span>
+                                </div>
+                                <div>5,892 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 8.7%</span></div>
+                            </li>
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <div class="color-indicator" style="background-color: #eab308;"></div>
+                                    <span>KwaZulu-Natal</span>
+                                </div>
+                                <div>4,328 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 10.5%</span></div>
+                            </li>
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <div class="color-indicator" style="background-color: #22c55e;"></div>
+                                    <span>Eastern Cape</span>
+                                </div>
+                                <div>2,145 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 5.3%</span></div>
+                            </li>
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <div class="color-indicator" style="background-color: #3b82f6;"></div>
+                                    <span>Mpumalanga</span>
+                                </div>
+                                <div>1,587 <span class="trend-badge trend-down"><i class="fas fa-arrow-down"></i> 2.1%</span></div>
+                            </li>
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <div class="color-indicator" style="background-color: #6366f1;"></div>
+                                    <span>Limpopo</span>
+                                </div>
+                                <div>1,235 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 24.7%</span></div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Top SUV Models</h2>
+                    </div>
+                    <div class="sales-breakdown">
+                        <ul class="province-list">
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <i class="fas fa-car" style="color: #3b82f6;"></i>
+                                    <span>Toyota Fortuner</span>
+                                </div>
+                                <div>5,120 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 15.2%</span></div>
+                            </li>
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <i class="fas fa-car" style="color: #ef4444;"></i>
+                                    <span>VW Tiguan</span>
+                                </div>
+                                <div>4,210 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 11.7%</span></div>
+                            </li>
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <i class="fas fa-car" style="color: #f97316;"></i>
+                                    <span>Ford Everest</span>
+                                </div>
+                                <div>3,890 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 9.3%</span></div>
+                            </li>
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <i class="fas fa-car" style="color: #22c55e;"></i>
+                                    <span>Hyundai Tucson</span>
+                                </div>
+                                <div>3,210 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 7.8%</span></div>
+                            </li>
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <i class="fas fa-car" style="color: #6366f1;"></i>
+                                    <span>Haval H6</span>
+                                </div>
+                                <div>2,950 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 8.4%</span></div>
+                            </li>
+                            <!-- Cross SUV Segment -->
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <i class="fas fa-car" style="color: #0ea5e9;"></i>
+                                    <span>Renault Kiger (Cross SUV)</span>
+                                </div>
+                                <div>2,780 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 6.2%</span></div>
+                            </li>
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <i class="fas fa-car" style="color: #a3e635;"></i>
+                                    <span>Honda WR-V (Cross SUV)</span>
+                                </div>
+                                <div>2,340 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 5.1%</span></div>
+                            </li>
+                            <!-- B-Segment SUVs -->
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <i class="fas fa-car" style="color: #facc15;"></i>
+                                    <span>Hyundai Venue (B-SUV)</span>
+                                </div>
+                                <div>2,120 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 4.7%</span></div>
+                            </li>
+                            <li class="province-item">
+                                <div class="province-name">
+                                    <i class="fas fa-car" style="color: #f472b6;"></i>
+                                    <span>Ford EcoSport (B-SUV)</span>
+                                </div>
+                                <div>1,980 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 3.9%</span></div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Reference note and Don't Chat notice -->
+        <div style="margin: 24px 0; padding: 16px; background: #1e293b; color: #a78bfa; border: 2px solid #38bdf8; text-align: center;">
+            <strong>Note:</strong> Model and sales data is based on simulated records from South African National Traffic Department, NAAMSA, import shipping databases, Lightstone Automotive, and <a href="https://www.transunion.co.za/product/vehicle-pricing-index" target="_blank">TransUnion Vehicle Pricing Index</a>. For real-time data, API access is required.<br>
+            <strong>Don't Chat:</strong> This dashboard is for data visualization only. No chat or messaging functionality is available.
+        </div>
+        <!-- Extra bar chart for segment sales -->
+    <!-- Segment sales data retained for future use -->
+    <!--
+    Segment Sales Data:
+    D-SUV: 9010
+    C-SUV: 12810
+    B-SUV: 11500
+    Cross SUV: 3120
+    -->
+    </div>
+    <script>
+        // MOCK DATA: Simulating South African National Traffic Department, NAAMSA, import shipping databases, and Lightstone Automotive
+        // Replace this section with real API calls or data integration when available
+        // Data sources: Lightstone Automotive, NAAMSA, public import records
+        const provinceSales = {
+            "Gauteng": 8427,
+            "Western Cape": 5892,
+            "KwaZulu-Natal": 4328,
+            "Eastern Cape": 2145,
+            "Mpumalanga": 1587,
+            "Limpopo": 1235,
+            "North West": 987,
+            "Free State": 845,
+            "Northern Cape": 537
+        };
+        const suvModels = [
+            { name: "Toyota Fortuner", segment: "D-SUV", sales: 5120, growth: 15.2 },
+            { name: "VW Tiguan", segment: "C-SUV", sales: 4210, growth: 11.7 },
+            { name: "Ford Everest", segment: "D-SUV", sales: 3890, growth: 9.3 },
+            { name: "Hyundai Tucson", segment: "C-SUV", sales: 3210, growth: 7.8 },
+            { name: "Haval H6", segment: "C-SUV", sales: 2950, growth: 8.4 },
+            { name: "Jaecoo J7", segment: "C-SUV", sales: 2100, growth: 6.9 },
+            { name: "Omoda C5", segment: "B-SUV", sales: 1850, growth: 5.7 },
+            { name: "Chery Tiggo 4 Pro", segment: "B-SUV", sales: 2780, growth: 6.2 },
+            { name: "Chery Tiggo 7 Pro", segment: "C-SUV", sales: 2340, growth: 5.1 },
+            { name: "Renault Kiger", segment: "Cross SUV", sales: 1780, growth: 4.2 },
+            { name: "Honda WR-V", segment: "Cross SUV", sales: 1340, growth: 3.1 },
+            { name: "Hyundai Venue", segment: "B-SUV", sales: 2120, growth: 4.7 },
+            { name: "Ford EcoSport", segment: "B-SUV", sales: 1980, growth: 3.9 },
+            { name: "Suzuki Vitara Brezza", segment: "B-SUV", sales: 1850, growth: 4.2 },
+            { name: "Toyota Urban Cruiser", segment: "B-SUV", sales: 1720, growth: 3.8 }
+        ];
+        // Generate Vega-Lite spec for the map
+        const mapSpec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "width": 600,
+            "height": 500,
+            "data": {
+                "values": [
+                    {"province": "Gauteng", "sales": 8427, "growth": 14.2},
+                    {"province": "Western Cape", "sales": 5892, "growth": 8.7},
+                    {"province": "KwaZulu-Natal", "sales": 4328, "growth": 10.5},
+                    {"province": "Eastern Cape", "sales": 2145, "growth": 5.3},
+                    {"province": "Mpumalanga", "sales": 1587, "growth": -2.1},
+                    {"province": "Limpopo", "sales": 1235, "growth": 24.7},
+                    {"province": "North West", "sales": 987, "growth": 7.3},
+                    {"province": "Free State", "sales": 845, "growth": 4.2},
+                    {"province": "Northern Cape", "sales": 537, "growth": 1.8}
+                ]
+            },
+            "projection": {"type": "mercator"},
+            "mark": {
+                "type": "geoshape",
+                "fill": "#1e293b",
+                "stroke": "#38bdf8",
+                "strokeWidth": 2
+            },
+            "encoding": {
+                "color": {
+                    "field": "sales",
+                    "type": "quantitative",
+                    "scale": {"scheme": "blues"}
+                },
+                "tooltip": [
+                    {"field": "province", "type": "nominal", "title": "Province"},
+                    {"field": "sales", "type": "quantitative", "title": "Sales", "format": ","},
+                    {"field": "growth", "type": "quantitative", "title": "Growth (%)", "format": ".1f"}
+                ]
+            }
+        };
+        // Generate Vega-Lite spec for the trend chart
+        const trendSpec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "width": "container",
+            "height": 250,
+            "data": {
+                "values": [
+                    {"month": "Jan 2024", "sales": 1850, "target": 1900},
+                    {"month": "Feb 2024", "sales": 2100, "target": 2050},
+                    {"month": "Mar 2024", "sales": 1950, "target": 2000},
+                    {"month": "Apr 2024", "sales": 2200, "target": 2150},
+                    {"month": "May 2024", "sales": 2300, "target": 2250},
+                    {"month": "Jun 2024", "sales": 2450, "target": 2400},
+                    {"month": "Jul 2024", "sales": 2600, "target": 2550},
+                    {"month": "Aug 2024", "sales": 2750, "target": 2700},
+                    {"month": "Sep 2024", "sales": 2900, "target": 2850},
+                    {"month": "Oct 2024", "sales": 3100, "target": 3000},
+                    {"month": "Nov 2024", "sales": 3300, "target": 3200},
+                    {"month": "Dec 2024", "sales": 3500, "target": 3400},
+                    {"month": "Jan 2025", "sales": 3700, "target": 3600},
+                    {"month": "Feb 2025", "sales": 3900, "target": 3800},
+                    {"month": "Mar 2025", "sales": 4100, "target": 4000},
+                    {"month": "Apr 2025", "sales": 4300, "target": 4200},
+                    {"month": "May 2025", "sales": 4500, "target": 4400},
+                    {"month": "Jun 2025", "sales": 4700, "target": 4600}
+                ]
+            },
+            "layer": [
+                {
+                    "mark": {
+                        "type": "line",
+                        "point": true,
+                        "color": "#38bdf8",
+                        "strokeWidth": 4
+                    },
+                    "encoding": {
+                        "x": {"field": "month", "type": "ordinal", "title": "Month"},
+                        "y": {"field": "sales", "type": "quantitative", "title": "Sales"},
+                        "tooltip": [
+                            {"field": "month", "type": "nominal", "title": "Month"},
+                            {"field": "sales", "type": "quantitative", "title": "Sales", "format": ","}
+                        ]
+                    }
+                },
+                {
+                    "mark": {
+                        "type": "line",
+                        "point": true,
+                        "color": "#a78bfa",
+                        "strokeDash": [5, 5],
+                        "strokeWidth": 3
+                    },
+                    "encoding": {
+                        "x": {"field": "month", "type": "ordinal"},
+                        "y": {"field": "target", "type": "quantitative", "title": "Sales"}
+                    }
+                }
+            ]
+        };
+        // Embed the visualizations
+        vegaEmbed('#map', mapSpec).catch(console.error);
+        vegaEmbed('#trend-chart', trendSpec).catch(console.error);
+        // Extra idea: Bar chart of segment sales breakdown
+        const segmentSales = [
+            { segment: "D-SUV", sales: 9010 },
+            { segment: "C-SUV", sales: 12810 },
+            { segment: "B-SUV", sales: 11500 },
+            { segment: "Cross SUV", sales: 3120 }
+        ];
+        const barChartSpec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+            "width": 350,
+            "height": 220,
+            "data": { "values": segmentSales },
+            "mark": "bar",
+            "encoding": {
+                "x": { "field": "segment", "type": "nominal", "title": "SUV Segment" },
+                "y": { "field": "sales", "type": "quantitative", "title": "Total Sales" },
+                "color": { "field": "segment", "type": "nominal", "legend": null }
+            },
+            "config": { "bar": { "cornerRadiusTopLeft": 0, "cornerRadiusTopRight": 0 } }
+        };
+        document.addEventListener('DOMContentLoaded', function() {
+            vegaEmbed('#extra-bar-chart', barChartSpec).catch(console.error);
+        });
+        // Add interactivity to the filters
+        document.getElementById('year-filter').addEventListener('change', updateDashboard);
+        document.getElementById('model-filter').addEventListener('change', updateDashboard);
+        document.getElementById('sort-by').addEventListener('change', updateDashboard);
+        function updateDashboard() {
+            // This function would update the dashboard based on filter selections
+            // In a real implementation, this would fetch new data or filter existing data
+            console.log('Updating dashboard with new filters...');
+        }
+        // Example: Render model list dynamically
+        function renderSUVModels() {
+            const list = document.querySelector('.card .sales-breakdown .province-list');
+            if (!list) return;
+            list.innerHTML = suvModels.map(model => `
+                <li class="province-item">
+                    <div class="province-name">
+                        <i class="fas fa-car" style="color: #3b82f6;"></i>
+                        <span>${model.name} (${model.segment})</span>
+                    </div>
+                    <div>${model.sales} <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> ${model.growth}%</span></div>
+                </li>
+            `).join('');
+        }
+        document.addEventListener('DOMContentLoaded', renderSUVModels);
+    </script>
+</body>
+</html>
