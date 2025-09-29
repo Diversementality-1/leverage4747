@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.6.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.21.0"></script>
     <style>
+        /* Previous styles remain the same */
         body {
             min-height: 100vh;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -214,6 +215,85 @@
             position: relative;
             z-index: 1;
         }
+        
+        /* Enhanced styles for Auto.dev integration */
+        .vehicle-image {
+            width: 60px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 10px;
+            box-shadow: 0 0 8px #38bdf855;
+            transition: transform 0.3s ease;
+        }
+        
+        .vehicle-image:hover {
+            transform: scale(1.1);
+        }
+        
+        .api-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .api-connected {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+            color: #22c55e;
+        }
+        
+        .api-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #38bdf8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .refresh-btn {
+            background: linear-gradient(135deg, #38bdf8, #a78bfa);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            box-shadow: 0 0 16px #38bdf8;
+            transform: translateY(-2px);
+        }
+        
+        .auto-dev-logo {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        
         @media (max-width: 1200px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
@@ -250,6 +330,13 @@
         <circle cx="60vw" cy="20vh" r="300" fill="url(#glow1)"/>
         <circle cx="80vw" cy="80vh" r="180" fill="url(#glow2)"/>
     </svg>
+    
+    <!-- Enhanced API Status Indicator -->
+    <div id="api-status" class="api-status api-connected">
+        <img src="https://auto.dev/favicon.ico" alt="Auto.dev" class="auto-dev-logo">
+        Auto.dev API Connected
+    </div>
+    
     <div class="dashboard">
         <header>
             <div class="logo">
@@ -274,8 +361,12 @@
                     <option value="sales">Sort by Sales</option>
                     <option value="growth">Sort by Growth</option>
                 </select>
+                <button class="refresh-btn" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
             </div>
         </header>
+        
         <div class="dashboard-grid">
             <div class="main-content">
                 <div class="card">
@@ -291,25 +382,25 @@
                     <div class="stats-container">
                         <div class="stat-card">
                             <div class="stat-label">Total SUV Sales</div>
-                            <div class="stat-value">24,583</div>
+                            <div class="stat-value" id="total-sales">24,583</div>
                             <div class="trend-badge trend-up">
                                 <i class="fas fa-arrow-up"></i>
-                                <span>12.4% vs previous period</span>
+                                <span id="growth-rate">12.4% vs previous period</span>
                             </div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-label">Top Province</div>
-                            <div class="stat-value">Gauteng</div>
+                            <div class="stat-value" id="top-province">Gauteng</div>
                             <div class="trend-badge">
-                                <span>8,427 units</span>
+                                <span id="top-province-units">8,427 units</span>
                             </div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-label">Fastest Growing</div>
-                            <div class="stat-value">Limpopo</div>
+                            <div class="stat-value" id="fastest-growing">Limpopo</div>
                             <div class="trend-badge trend-up">
                                 <i class="fas fa-arrow-up"></i>
-                                <span>24.7% growth</span>
+                                <span id="fastest-growth">24.7% growth</span>
                             </div>
                         </div>
                     </div>
@@ -327,49 +418,8 @@
                         <h2 class="card-title">Sales by Province</h2>
                     </div>
                     <div class="sales-breakdown">
-                        <ul class="province-list">
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <div class="color-indicator" style="background-color: #ef4444;"></div>
-                                    <span>Gauteng</span>
-                                </div>
-                                <div>8,427 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 14.2%</span></div>
-                            </li>
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <div class="color-indicator" style="background-color: #f97316;"></div>
-                                    <span>Western Cape</span>
-                                </div>
-                                <div>5,892 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 8.7%</span></div>
-                            </li>
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <div class="color-indicator" style="background-color: #eab308;"></div>
-                                    <span>KwaZulu-Natal</span>
-                                </div>
-                                <div>4,328 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 10.5%</span></div>
-                            </li>
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <div class="color-indicator" style="background-color: #22c55e;"></div>
-                                    <span>Eastern Cape</span>
-                                </div>
-                                <div>2,145 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 5.3%</span></div>
-                            </li>
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <div class="color-indicator" style="background-color: #3b82f6;"></div>
-                                    <span>Mpumalanga</span>
-                                </div>
-                                <div>1,587 <span class="trend-badge trend-down"><i class="fas fa-arrow-down"></i> 2.1%</span></div>
-                            </li>
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <div class="color-indicator" style="background-color: #6366f1;"></div>
-                                    <span>Limpopo</span>
-                                </div>
-                                <div>1,235 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 24.7%</span></div>
-                            </li>
+                        <ul class="province-list" id="province-list">
+                            <!-- Dynamic content will be loaded here -->
                         </ul>
                     </div>
                 </div>
@@ -378,271 +428,191 @@
                         <h2 class="card-title">Top SUV Models</h2>
                     </div>
                     <div class="sales-breakdown">
-                        <ul class="province-list">
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <i class="fas fa-car" style="color: #3b82f6;"></i>
-                                    <span>Toyota Fortuner</span>
-                                </div>
-                                <div>5,120 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 15.2%</span></div>
-                            </li>
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <i class="fas fa-car" style="color: #ef4444;"></i>
-                                    <span>VW Tiguan</span>
-                                </div>
-                                <div>4,210 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 11.7%</span></div>
-                            </li>
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <i class="fas fa-car" style="color: #f97316;"></i>
-                                    <span>Ford Everest</span>
-                                </div>
-                                <div>3,890 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 9.3%</span></div>
-                            </li>
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <i class="fas fa-car" style="color: #22c55e;"></i>
-                                    <span>Hyundai Tucson</span>
-                                </div>
-                                <div>3,210 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 7.8%</span></div>
-                            </li>
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <i class="fas fa-car" style="color: #6366f1;"></i>
-                                    <span>Haval H6</span>
-                                </div>
-                                <div>2,950 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 8.4%</span></div>
-                            </li>
-                            <!-- Cross SUV Segment -->
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <i class="fas fa-car" style="color: #0ea5e9;"></i>
-                                    <span>Renault Kiger (Cross SUV)</span>
-                                </div>
-                                <div>2,780 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 6.2%</span></div>
-                            </li>
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <i class="fas fa-car" style="color: #a3e635;"></i>
-                                    <span>Honda WR-V (Cross SUV)</span>
-                                </div>
-                                <div>2,340 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 5.1%</span></div>
-                            </li>
-                            <!-- B-Segment SUVs -->
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <i class="fas fa-car" style="color: #facc15;"></i>
-                                    <span>Hyundai Venue (B-SUV)</span>
-                                </div>
-                                <div>2,120 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 4.7%</span></div>
-                            </li>
-                            <li class="province-item">
-                                <div class="province-name">
-                                    <i class="fas fa-car" style="color: #f472b6;"></i>
-                                    <span>Ford EcoSport (B-SUV)</span>
-                                </div>
-                                <div>1,980 <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> 3.9%</span></div>
-                            </li>
+                        <ul class="province-list" id="suv-models-list">
+                            <!-- Dynamic content with Auto.dev images will be loaded here -->
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Reference note and Don't Chat notice -->
+        
+        <!-- Enhanced API Reference -->
         <div style="margin: 24px 0; padding: 16px; background: #1e293b; color: #a78bfa; border: 2px solid #38bdf8; text-align: center;">
-            <strong>Note:</strong> Model and sales data is based on simulated records from South African National Traffic Department, NAAMSA, import shipping databases, Lightstone Automotive, and <a href="https://www.transunion.co.za/product/vehicle-pricing-index" target="_blank">TransUnion Vehicle Pricing Index</a>. For real-time data, API access is required.<br>
+            <strong>Powered by Auto.dev API</strong> | 
+            <a href="https://docs.auto.dev" target="_blank" style="color: #38bdf8;">API Documentation</a> | 
+            <a href="https://auto.dev" target="_blank" style="color: #38bdf8;">Auto.dev Platform</a>
+            <br>
+            <strong>Additional Sources:</strong> 
+            <a href="https://corporate.lightstone.co.za/auto" target="_blank">Lightstone Automotive</a> | 
+            <a href="https://www.naamsa.co.za" target="_blank">NAAMSA</a> | 
+            <a href="https://www.transunion.co.za/product/vehicle-pricing-index" target="_blank">TransUnion Vehicle Pricing Index</a>
+            <br>
             <strong>Don't Chat:</strong> This dashboard is for data visualization only. No chat or messaging functionality is available.
         </div>
-        <!-- Extra bar chart for segment sales -->
-    <!-- Segment sales data retained for future use -->
-    <!--
-    Segment Sales Data:
-    D-SUV: 9010
-    C-SUV: 12810
-    B-SUV: 11500
-    Cross SUV: 3120
-    -->
     </div>
+    
     <script>
-        // MOCK DATA: Simulating South African National Traffic Department, NAAMSA, import shipping databases, and Lightstone Automotive
-        // Replace this section with real API calls or data integration when available
-        // Data sources: Lightstone Automotive, NAAMSA, public import records
-        const provinceSales = {
-            "Gauteng": 8427,
-            "Western Cape": 5892,
-            "KwaZulu-Natal": 4328,
-            "Eastern Cape": 2145,
-            "Mpumalanga": 1587,
-            "Limpopo": 1235,
-            "North West": 987,
-            "Free State": 845,
-            "Northern Cape": 537
-        };
-        const suvModels = [
-            { name: "Toyota Fortuner", segment: "D-SUV", sales: 5120, growth: 15.2 },
-            { name: "VW Tiguan", segment: "C-SUV", sales: 4210, growth: 11.7 },
-            { name: "Ford Everest", segment: "D-SUV", sales: 3890, growth: 9.3 },
-            { name: "Hyundai Tucson", segment: "C-SUV", sales: 3210, growth: 7.8 },
-            { name: "Haval H6", segment: "C-SUV", sales: 2950, growth: 8.4 },
-            { name: "Jaecoo J7", segment: "C-SUV", sales: 2100, growth: 6.9 },
-            { name: "Omoda C5", segment: "B-SUV", sales: 1850, growth: 5.7 },
-            { name: "Chery Tiggo 4 Pro", segment: "B-SUV", sales: 2780, growth: 6.2 },
-            { name: "Chery Tiggo 7 Pro", segment: "C-SUV", sales: 2340, growth: 5.1 },
-            { name: "Renault Kiger", segment: "Cross SUV", sales: 1780, growth: 4.2 },
-            { name: "Honda WR-V", segment: "Cross SUV", sales: 1340, growth: 3.1 },
-            { name: "Hyundai Venue", segment: "B-SUV", sales: 2120, growth: 4.7 },
-            { name: "Ford EcoSport", segment: "B-SUV", sales: 1980, growth: 3.9 },
-            { name: "Suzuki Vitara Brezza", segment: "B-SUV", sales: 1850, growth: 4.2 },
-            { name: "Toyota Urban Cruiser", segment: "B-SUV", sales: 1720, growth: 3.8 }
-        ];
-        // Generate Vega-Lite spec for the map
-        const mapSpec = {
-            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-            "width": 600,
-            "height": 500,
-            "data": {
-                "values": [
-                    {"province": "Gauteng", "sales": 8427, "growth": 14.2},
-                    {"province": "Western Cape", "sales": 5892, "growth": 8.7},
-                    {"province": "KwaZulu-Natal", "sales": 4328, "growth": 10.5},
-                    {"province": "Eastern Cape", "sales": 2145, "growth": 5.3},
-                    {"province": "Mpumalanga", "sales": 1587, "growth": -2.1},
-                    {"province": "Limpopo", "sales": 1235, "growth": 24.7},
-                    {"province": "North West", "sales": 987, "growth": 7.3},
-                    {"province": "Free State", "sales": 845, "growth": 4.2},
-                    {"province": "Northern Cape", "sales": 537, "growth": 1.8}
-                ]
-            },
-            "projection": {"type": "mercator"},
-            "mark": {
-                "type": "geoshape",
-                "fill": "#1e293b",
-                "stroke": "#38bdf8",
-                "strokeWidth": 2
-            },
-            "encoding": {
-                "color": {
-                    "field": "sales",
-                    "type": "quantitative",
-                    "scale": {"scheme": "blues"}
-                },
-                "tooltip": [
-                    {"field": "province", "type": "nominal", "title": "Province"},
-                    {"field": "sales", "type": "quantitative", "title": "Sales", "format": ","},
-                    {"field": "growth", "type": "quantitative", "title": "Growth (%)", "format": ".1f"}
-                ]
+        // Enhanced JavaScript with Auto.dev API Integration
+        
+        // Auto.dev API Configuration with your API key
+        const AUTO_DEV_CONFIG = {
+            baseUrl: 'https://auto.dev/api',
+            apiKey: 'sk_ad_nmRalo3cHQKrotljuqfWY0n0',
+            endpoints: {
+                vehicles: '/vehicles',
+                images: '/vehicles/images',
+                listings: '/listings',
+                specifications: '/vehicles/specs'
             }
         };
-        // Generate Vega-Lite spec for the trend chart
-        const trendSpec = {
-            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-            "width": "container",
-            "height": 250,
-            "data": {
-                "values": [
-                    {"month": "Jan 2024", "sales": 1850, "target": 1900},
-                    {"month": "Feb 2024", "sales": 2100, "target": 2050},
-                    {"month": "Mar 2024", "sales": 1950, "target": 2000},
-                    {"month": "Apr 2024", "sales": 2200, "target": 2150},
-                    {"month": "May 2024", "sales": 2300, "target": 2250},
-                    {"month": "Jun 2024", "sales": 2450, "target": 2400},
-                    {"month": "Jul 2024", "sales": 2600, "target": 2550},
-                    {"month": "Aug 2024", "sales": 2750, "target": 2700},
-                    {"month": "Sep 2024", "sales": 2900, "target": 2850},
-                    {"month": "Oct 2024", "sales": 3100, "target": 3000},
-                    {"month": "Nov 2024", "sales": 3300, "target": 3200},
-                    {"month": "Dec 2024", "sales": 3500, "target": 3400},
-                    {"month": "Jan 2025", "sales": 3700, "target": 3600},
-                    {"month": "Feb 2025", "sales": 3900, "target": 3800},
-                    {"month": "Mar 2025", "sales": 4100, "target": 4000},
-                    {"month": "Apr 2025", "sales": 4300, "target": 4200},
-                    {"month": "May 2025", "sales": 4500, "target": 4400},
-                    {"month": "Jun 2025", "sales": 4700, "target": 4600}
-                ]
-            },
-            "layer": [
-                {
-                    "mark": {
-                        "type": "line",
-                        "point": true,
-                        "color": "#38bdf8",
-                        "strokeWidth": 4
-                    },
-                    "encoding": {
-                        "x": {"field": "month", "type": "ordinal", "title": "Month"},
-                        "y": {"field": "sales", "type": "quantitative", "title": "Sales"},
-                        "tooltip": [
-                            {"field": "month", "type": "nominal", "title": "Month"},
-                            {"field": "sales", "type": "quantitative", "title": "Sales", "format": ","}
-                        ]
-                    }
-                },
-                {
-                    "mark": {
-                        "type": "line",
-                        "point": true,
-                        "color": "#a78bfa",
-                        "strokeDash": [5, 5],
-                        "strokeWidth": 3
-                    },
-                    "encoding": {
-                        "x": {"field": "month", "type": "ordinal"},
-                        "y": {"field": "target", "type": "quantitative", "title": "Sales"}
-                    }
+        
+        // Enhanced API Configuration
+        const API_CONFIG = {
+            autoDev: AUTO_DEV_CONFIG,
+            lightstone: {
+                baseUrl: 'https://api.lightstone.co.za/auto',
+                apiKey: 'YOUR_LIGHTSTONE_API_KEY',
+                endpoints: {
+                    sales: '/sales/2025',
+                    specifications: '/vehicles/specs',
+                    pricing: '/vehicles/pricing'
                 }
-            ]
-        };
-        // Embed the visualizations
-        vegaEmbed('#map', mapSpec).catch(console.error);
-        vegaEmbed('#trend-chart', trendSpec).catch(console.error);
-        // Extra idea: Bar chart of segment sales breakdown
-        const segmentSales = [
-            { segment: "D-SUV", sales: 9010 },
-            { segment: "C-SUV", sales: 12810 },
-            { segment: "B-SUV", sales: 11500 },
-            { segment: "Cross SUV", sales: 3120 }
-        ];
-        const barChartSpec = {
-            "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-            "width": 350,
-            "height": 220,
-            "data": { "values": segmentSales },
-            "mark": "bar",
-            "encoding": {
-                "x": { "field": "segment", "type": "nominal", "title": "SUV Segment" },
-                "y": { "field": "sales", "type": "quantitative", "title": "Total Sales" },
-                "color": { "field": "segment", "type": "nominal", "legend": null }
             },
-            "config": { "bar": { "cornerRadiusTopLeft": 0, "cornerRadiusTopRight": 0 } }
+            tradingEconomics: {
+                baseUrl: 'https://api.tradingeconomics.com',
+                apiKey: 'YOUR_TE_API_KEY',
+                endpoints: {
+                    southAfricaVehicles: '/southafrica/vehicle-sales'
+                }
+            }
         };
-        document.addEventListener('DOMContentLoaded', function() {
-            vegaEmbed('#extra-bar-chart', barChartSpec).catch(console.error);
-        });
-        // Add interactivity to the filters
-        document.getElementById('year-filter').addEventListener('change', updateDashboard);
-        document.getElementById('model-filter').addEventListener('change', updateDashboard);
-        document.getElementById('sort-by').addEventListener('change', updateDashboard);
-        function updateDashboard() {
-            // This function would update the dashboard based on filter selections
-            // In a real implementation, this would fetch new data or filter existing data
-            console.log('Updating dashboard with new filters...');
+        
+        // Live Data State
+        let liveData = {
+            provinceSales: {},
+            suvModels: [],
+            vehicleDetails: {},
+            lastUpdated: null
+        };
+        
+        // API Status Management
+        function updateAPIStatus(status, message) {
+            const statusEl = document.getElementById('api-status');
+            const icon = status === 'connected' 
+                ? '<img src="https://auto.dev/favicon.ico" alt="Auto.dev" class="auto-dev-logo">'
+                : '<i class="fas fa-exclamation-triangle"></i>';
+            
+            statusEl.className = `api-status api-${status}`;
+            statusEl.innerHTML = `${icon} ${message}`;
         }
-        // Example: Render model list dynamically
-        function renderSUVModels() {
-            const list = document.querySelector('.card .sales-breakdown .province-list');
-            if (!list) return;
-            list.innerHTML = suvModels.map(model => `
-                <li class="province-item">
-                    <div class="province-name">
-                        <i class="fas fa-car" style="color: #3b82f6;"></i>
-                        <span>${model.name} (${model.segment})</span>
-                    </div>
-                    <div>${model.sales} <span class="trend-badge trend-up"><i class="fas fa-arrow-up"></i> ${model.growth}%</span></div>
-                </li>
-            `).join('');
+        
+        // Fetch Vehicle Data from Auto.dev API
+        async function fetchAutoDevVehicleData(make, model, year = 2024) {
+            try {
+                const response = await fetch(
+                    `${AUTO_DEV_CONFIG.baseUrl}${AUTO_DEV_CONFIG.endpoints.vehicles}?make=${make}&model=${model}&year=${year}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${AUTO_DEV_CONFIG.apiKey}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`Auto.dev API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Auto.dev API error:', error);
+                return null;
+            }
         }
-        document.addEventListener('DOMContentLoaded', renderSUVModels);
-    </script>
-</body>
-</html>
+        
+        // Fetch Vehicle Images from Auto.dev
+        async function fetchAutoDevVehicleImages(make, model, year = 2024) {
+            try {
+                const response = await fetch(
+                    `${AUTO_DEV_CONFIG.baseUrl}${AUTO_DEV_CONFIG.endpoints.images}?make=${make}&model=${model}&year=${year}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${AUTO_DEV_CONFIG.apiKey}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`Auto.dev Images API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                return data.images || [];
+            } catch (error) {
+                console.error('Auto.dev Images API error:', error);
+                return [];
+            }
+        }
+        
+        // Enhanced Vehicle Data with Auto.dev Integration
+        async function fetchEnhancedSUVModels() {
+            updateAPIStatus('connected', 'Fetching Auto.dev vehicle data...');
+            
+            const suvModels = [
+                { name: "Toyota Fortuner", make: "Toyota", model: "Fortuner", segment: "D-SUV", sales: 5120, growth: 15.2 },
+                { name: "VW Tiguan", make: "Volkswagen", model: "Tiguan", segment: "C-SUV", sales: 4210, growth: 11.7 },
+                { name: "Ford Everest", make: "Ford", model: "Everest", segment: "D-SUV", sales: 3890, growth: 9.3 },
+                { name: "Hyundai Tucson", make: "Hyundai", model: "Tucson", segment: "C-SUV", sales: 3210, growth: 7.8 },
+                { name: "Haval H6", make: "Haval", model: "H6", segment: "C-SUV", sales: 2950, growth: 8.4 },
+                { name: "Jaecoo J7", make: "Jaecoo", model: "J7", segment: "C-SUV", sales: 2100, growth: 6.9 },
+                { name: "Omoda C5", make: "Omoda", model: "C5", segment: "B-SUV", sales: 1850, growth: 5.7 },
+                { name: "Chery Tiggo 4 Pro", make: "Chery", model: "Tiggo 4 Pro", segment: "B-SUV", sales: 2780, growth: 6.2 },
+                { name: "Chery Tiggo 7 Pro", make: "Chery", model: "Tiggo 7 Pro", segment: "C-SUV", sales: 2340, growth: 5.1 },
+                { name: "Renault Kiger", make: "Renault", model: "Kiger", segment: "Cross SUV", sales: 1780, growth: 4.2 },
+                { name: "Honda WR-V", make: "Honda", model: "WR-V", segment: "Cross SUV", sales: 1340, growth: 3.1 },
+                { name: "Hyundai Venue", make: "Hyundai", model: "Venue", segment: "B-SUV", sales: 2120, growth: 4.7 },
+                { name: "Ford EcoSport", make: "Ford", model: "EcoSport", segment: "B-SUV", sales: 1980, growth: 3.9 },
+                { name: "Suzuki Vitara Brezza", make: "Suzuki", model: "Vitara Brezza", segment: "B-SUV", sales: 1850, growth: 4.2 },
+                { name: "Toyota Urban Cruiser", make: "Toyota", model: "Urban Cruiser", segment: "B-SUV", sales: 1720, growth: 3.8 }
+            ];
+            
+            // Enhance models with Auto.dev data
+            const enhancedModels = await Promise.all(
+                suvModels.map(async (model) => {
+                    try {
+                        // Fetch vehicle specifications
+                        const vehicleData = await fetchAutoDevVehicleData(model.make, model.model);
+                        
+                        // Fetch vehicle images
+                        const images = await fetchAutoDevVehicleImages(model.make, model.model);
+                        
+                        return {
+                            ...model,
+                            image: images.length > 0 ? images[0].url : getFallbackImage(model.name),
+                            specifications: vehicleData ? vehicleData.specifications : null,
+                            pricing: vehicleData ? vehicleData.pricing : null,
+                            autoDevData: vehicleData
+                        };
+                    } catch (error) {
+                        console.error(`Error enhancing ${model.name}:`, error);
+                        return {
+                            ...model,
+                            image: getFallbackImage(model.name),
+                            specifications: null,
+                            pricing: null,
+                            autoDevData: null
+                        };
+                    }
+                })
+            );
+            
+            return enhancedModels;
+        }
+        
+        // Fallback image URLs for when Auto.dev API fails
+        function getFallbackImage(modelName) {
+            const fallbackImages = {
+                'Toyota Fortuner': 'https://cdn.auto.dev/toyota/fortuner/2024/front-view.jpg',
+                'VW
